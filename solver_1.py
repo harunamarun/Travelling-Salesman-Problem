@@ -105,8 +105,8 @@ def graham_scan(cities, dist):
         if i == mini_index:
             angle.append((i, 0))
         else:
-            print("dist", dist[i][mini_index])
-            print("y", (city[1]-cities[mini_index][1]))
+            # print("dist", dist[i][mini_index])
+            # print("y", (city[1]-cities[mini_index][1]))
             theta = math.degrees(
                 math.atan2(city[1]-cities[mini_index][1],
                            city[0]-cities[mini_index][0])
@@ -115,7 +115,7 @@ def graham_scan(cities, dist):
                 theta += 360
             angle.append((i, theta))
     angle.sort(key=lambda x: x[1])
-    print(angle)
+    # print(angle)
     # remove inside point
     path = [mini_index]
     angle_base_index = 0
@@ -147,12 +147,35 @@ def graham_scan(cities, dist):
 
     return path
 
+def cheapest_insertion(cities, path, dist):
+    visited_cities = set(path)
+    minimum_cost = -1
+    insert_city = -1
+    insert_index = -1
+    for city_index, city in enumerate(cities):
+        if city_index in visited_cities:
+            continue
+        for path_start in range(len(path)):
+            path_end = (path_start + 1) % len(path)
+            path_start_city_index = path[path_start]
+            path_end_city_index = path[path_end]
+            cost = dist[path_start_city_index][city_index] + dist[city_index][path_end_city_index] - dist[path_start_city_index][path_end_city_index]
+            if cost < minimum_cost or minimum_cost == -1:
+                minimum_cost = cost
+                insert_city = city_index
+                insert_index = path_start + 1
+    path.insert(insert_index,insert_city)
 
 def optimize(N, current_path, dist):
     i = 0
-    while i < 4:
+    while i < 10:
         while opt_2(N, current_path, dist):
             print("updating")
+        while True:
+            is_update, current_path = or_opt(N, current_path, dist, 1)
+            if not is_update:
+                break
+            print("insert1 updating")
         while True:
             is_update, current_path = or_opt(N, current_path, dist, 2)
             if not is_update:
@@ -168,6 +191,11 @@ def optimize(N, current_path, dist):
             if not is_update:
                 break
             print("insert4 updating")
+        while True:
+            is_update, current_path = or_opt(N, current_path, dist, 5)
+            if not is_update:
+                break
+            print("insert5 updating")
         i += 1
     return current_path
 
@@ -175,35 +203,35 @@ def optimize(N, current_path, dist):
 def solve(cities):
     N = len(cities)
     print(N)
-# def calc_total_distance(N, path, dist):
     dist = create_dist_list(cities)
-    # if N != 8:
-    #     return []
+
     mini_total_dist = -1
     best_path = []
 
-    path = graham_scan(cities, dist)
-    print(path)
-    hoge = N-len(path)
-    for i in range(hoge):
-        path.append(path[0])
-    return path
+    # path = graham_scan(cities, dist)
+    # while len(path) < N:
+    #     cheapest_insertion(cities, path, dist)
 
-    # for i in range(N):
-    #     current_path = nearest_neigbor(i, N, dist)
-    #     uniq_cities = set(current_path)
-    #     if(len(uniq_cities) != N):
-    #         print(uniq_cities)
-    #         print("ERROR")
-    #         exit(1)
+    for i in range(N):
+        print("nearest_neigher start from ", i)
+        print("current_best = ", mini_total_dist)
+        current_path = nearest_neigbor(i, N, dist)
+        # current_path = graham_scan(cities, dist)
+        # while len(current_path) < N:
+        #     cheapest_insertion(cities, current_path, dist)
+        uniq_cities = set(current_path)
+        if(len(uniq_cities) != N):
+            print(uniq_cities)
+            print("ERROR")
+            exit(1)
 
-    #     current_path = optimize(N, current_path, dist)
-    #     calc_current_distance = calc_total_distance(N, current_path, dist)
-    #     if mini_total_dist < 0 or mini_total_dist > calc_current_distance:
-    #         mini_total_dist = calc_current_distance
-    #         best_path = current_path
-    # print("td:", mini_total_dist)
-    # return best_path
+        current_path = optimize(N, current_path, dist)
+        calc_current_distance = calc_total_distance(N, current_path, dist)
+        if mini_total_dist < 0 or mini_total_dist > calc_current_distance:
+            mini_total_dist = calc_current_distance
+            best_path = current_path
+    print("td:", mini_total_dist)
+    return best_path
 
 
 if __name__ == '__main__':
