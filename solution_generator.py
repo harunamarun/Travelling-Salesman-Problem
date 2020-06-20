@@ -2,6 +2,7 @@
 
 import sys
 import math
+import solver_1
 
 from common import format_solution, read_input
 
@@ -12,7 +13,8 @@ CHALLENGES = 7
 
 def generate_sample_solutions():
     solvers = ((solver_random, 'random'),
-               (solver_greedy, 'greedy'))
+               (solver_greedy, 'greedy'),
+               (solver_1, 'yours'))
     for challenge_number in range(CHALLENGES):
         cities = read_input('input_{}.csv'.format(challenge_number))
         for solver, solver_name in solvers:
