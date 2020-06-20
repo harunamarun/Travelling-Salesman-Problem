@@ -97,6 +97,8 @@ def opt_2(N, path, dist):
 def or_opt(N, path, dist, num):
     is_update = False
     for i in range(N-1):
+        max_inproved_cost = 0
+        best_j = -1
         for j in range(1, N-num):
             if i + 1 < j or j < i - (num-1):
                 current = dist[path[i]][path[i+1]] + \
@@ -105,14 +107,18 @@ def or_opt(N, path, dist, num):
                 insert_path = dist[path[i]][path[j]] + \
                     dist[path[j+(num-1)]][path[i+1]] + \
                     dist[path[j-1]][path[j+num]]
-                if current > insert_path:
-                    is_update = True
-                    if i + 1 < j:
-                        path = path[:i+1] + path[j:j+num] + \
-                            path[i+1:j] + path[j+num:]
-                    else:
-                        path = path[:j] + path[j+num:i+1] + \
-                            path[j:j+num] + path[i+1:]
+                improved_cost = current - insert_path
+                if max_inproved_cost < improved_cost:
+                    max_inproved_cost = improved_cost
+                    best_j = j
+        if best_j != -1:
+            is_update = True
+            if i + 1 < best_j:
+                path = path[:i+1] + path[best_j:best_j+num] + \
+                    path[i+1:best_j] + path[best_j+num:]
+            else:
+                path = path[:best_j] + path[best_j+num:i+1] + \
+                    path[best_j:best_j+num] + path[i+1:]
     return is_update, path
 
 
@@ -253,8 +259,8 @@ def solve(cities):
     # while len(path) < N:
     #     cheapest_insertion(cities, path, dist)
     start_range = range(N)
-    if(N == 512):
-        start_range = range(350, 400)
+    # if(N == 512):
+    #     start_range = range(350, 400)
     if(N == 2048):
         start_range = range(1260, 1270)
     for i in start_range:
