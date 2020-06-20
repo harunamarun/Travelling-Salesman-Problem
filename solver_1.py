@@ -168,34 +168,45 @@ def cheapest_insertion(cities, path, dist):
 
 def optimize(N, current_path, dist):
     i = 0
-    while i < 10:
+    while True:
+        path_updated = False
+        print(i)
         while opt_2(N, current_path, dist):
-            print("updating")
-        while True:
-            is_update, current_path = or_opt(N, current_path, dist, 1)
-            if not is_update:
-                break
-            print("insert1 updating")
-        while True:
-            is_update, current_path = or_opt(N, current_path, dist, 2)
-            if not is_update:
-                break
-            print("insert2 updating")
-        while True:
-            is_update, current_path = or_opt(N, current_path, dist, 3)
-            if not is_update:
-                break
-            print("insert3 updating")
-        while True:
-            is_update, current_path = or_opt(N, current_path, dist, 4)
-            if not is_update:
-                break
-            print("insert4 updating")
+            print("updating" + "(" + str(i) + ")")
+            path_updated = True
         while True:
             is_update, current_path = or_opt(N, current_path, dist, 5)
             if not is_update:
                 break
-            print("insert5 updating")
+            path_updated = True
+            print("insert1 updating" + "(" + str(i) + ")")
+        while True:
+            is_update, current_path = or_opt(N, current_path, dist, 4)
+            if not is_update:
+                break
+            path_updated = True
+            print("insert2 updating" + "(" + str(i) + ")")
+        while True:
+            is_update, current_path = or_opt(N, current_path, dist, 3)
+            if not is_update:
+                break
+            path_updated = True
+            print("insert3 updating" + "(" + str(i) + ")")
+        while True:
+            is_update, current_path = or_opt(N, current_path, dist, 2)
+            if not is_update:
+                break
+            path_updated = True
+            print("insert4 updating" + "(" + str(i) + ")")
+        while True:
+            is_update, current_path = or_opt(N, current_path, dist, 1)
+            if not is_update:
+                break
+            path_updated = True
+            print("insert5 updating" + "(" + str(i) + ")")
+        print("path_updated = ", path_updated)
+        if not path_updated:
+            break
         i += 1
     return current_path
 
@@ -211,14 +222,20 @@ def solve(cities):
     # path = graham_scan(cities, dist)
     # while len(path) < N:
     #     cheapest_insertion(cities, path, dist)
-
-    for i in range(N):
+    start_range = range(N)
+    if(N == 512):
+        start_range= range(350, 400)
+    if(N == 2048):
+        start_range = range(1260, 1270)
+    for i in start_range:
         print("nearest_neigher start from ", i)
         print("current_best = ", mini_total_dist)
         current_path = nearest_neigbor(i, N, dist)
         # current_path = graham_scan(cities, dist)
         # while len(current_path) < N:
         #     cheapest_insertion(cities, current_path, dist)
+
+        # Veridation check
         uniq_cities = set(current_path)
         if(len(uniq_cities) != N):
             print(uniq_cities)
@@ -226,10 +243,13 @@ def solve(cities):
             exit(1)
 
         current_path = optimize(N, current_path, dist)
+
+        # Update best path
         calc_current_distance = calc_total_distance(N, current_path, dist)
         if mini_total_dist < 0 or mini_total_dist > calc_current_distance:
             mini_total_dist = calc_current_distance
             best_path = current_path
+
     print("td:", mini_total_dist)
     return best_path
 
