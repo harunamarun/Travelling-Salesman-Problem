@@ -47,9 +47,31 @@ def nearest_neigbor(start_city, N, dist):
     return solution
 
 
+# def opt_2(N, path, dist):
+#     is_opt = False
+#     for i in range(N):
+#         for j in range(i+2, N):
+#             next_i = i+1
+#             next_j = (j+1) % N
+#             current = dist[path[i]][path[next_i]] + \
+#                 dist[path[j]][path[next_j]]
+#             switch_path = dist[path[i]][path[j]] + \
+#                 dist[path[next_i]][path[next_j]]
+#             if current > switch_path:
+#                 is_opt = True
+#                 left = i+1
+#                 right = j
+#                 while left < right:
+#                     path[left], path[right] = path[right], path[left]
+#                     left += 1
+#                     right -= 1
+#     return is_opt
+
 def opt_2(N, path, dist):
     is_opt = False
     for i in range(N):
+        max_inproved_cost = 0
+        best_j = -1
         for j in range(i+2, N):
             next_i = i+1
             next_j = (j+1) % N
@@ -57,14 +79,18 @@ def opt_2(N, path, dist):
                 dist[path[j]][path[next_j]]
             switch_path = dist[path[i]][path[j]] + \
                 dist[path[next_i]][path[next_j]]
-            if current > switch_path:
-                is_opt = True
-                left = i+1
-                right = j
-                while left < right:
-                    path[left], path[right] = path[right], path[left]
-                    left += 1
-                    right -= 1
+            improved_cost = current - switch_path
+            if max_inproved_cost < improved_cost:
+                max_inproved_cost = improved_cost
+                best_j = j
+        if best_j != -1:
+            is_opt = True
+            left = i+1
+            right = best_j
+            while left < right:
+                path[left], path[right] = path[right], path[left]
+                left += 1
+                right -= 1
     return is_opt
 
 
@@ -147,6 +173,7 @@ def graham_scan(cities, dist):
 
     return path
 
+
 def cheapest_insertion(cities, path, dist):
     visited_cities = set(path)
     minimum_cost = -1
@@ -159,12 +186,15 @@ def cheapest_insertion(cities, path, dist):
             path_end = (path_start + 1) % len(path)
             path_start_city_index = path[path_start]
             path_end_city_index = path[path_end]
-            cost = dist[path_start_city_index][city_index] + dist[city_index][path_end_city_index] - dist[path_start_city_index][path_end_city_index]
+            cost = dist[path_start_city_index][city_index] + \
+                dist[city_index][path_end_city_index] - \
+                dist[path_start_city_index][path_end_city_index]
             if cost < minimum_cost or minimum_cost == -1:
                 minimum_cost = cost
                 insert_city = city_index
                 insert_index = path_start + 1
-    path.insert(insert_index,insert_city)
+    path.insert(insert_index, insert_city)
+
 
 def optimize(N, current_path, dist):
     i = 0
@@ -224,7 +254,7 @@ def solve(cities):
     #     cheapest_insertion(cities, path, dist)
     start_range = range(N)
     if(N == 512):
-        start_range= range(350, 400)
+        start_range = range(350, 400)
     if(N == 2048):
         start_range = range(1260, 1270)
     for i in start_range:
@@ -235,12 +265,7 @@ def solve(cities):
         # while len(current_path) < N:
         #     cheapest_insertion(cities, current_path, dist)
 
-        # Veridation check
-        uniq_cities = set(current_path)
-        if(len(uniq_cities) != N):
-            print(uniq_cities)
-            print("ERROR")
-            exit(1)
+
 
         current_path = optimize(N, current_path, dist)
 
@@ -251,6 +276,12 @@ def solve(cities):
             best_path = current_path
 
     print("td:", mini_total_dist)
+    # Veridation check
+    uniq_cities = set(best_path)
+    if(len(uniq_cities) != N):
+        print(uniq_cities)
+        print("ERROR")
+        exit(1)
     return best_path
 
 
