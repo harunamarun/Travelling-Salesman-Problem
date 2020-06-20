@@ -67,11 +67,13 @@ def nearest_neigbor(start_city, N, dist):
 #                     right -= 1
 #     return is_opt
 
-def opt_2(N, path, dist):
+def opt_2(N, _path, dist):
+    path = _path[:]
     is_opt = False
+    total_improved_cost = 0
 
     for i in range(N):
-        max_inproved_cost = 0
+        max_improved_cost = 0
         best_j = -1
         for j in range(i+2, N):
             next_i = i+1
@@ -81,27 +83,30 @@ def opt_2(N, path, dist):
             switch_path = dist[path[i]][path[j]] + \
                 dist[path[next_i]][path[next_j]]
             improved_cost = current - switch_path
-            if max_inproved_cost < improved_cost:
-                max_inproved_cost = improved_cost
+            if max_improved_cost < improved_cost:
+                max_improved_cost = improved_cost
                 best_j = j
         if best_j != -1:
             is_opt = True
+            total_improved_cost += max_improved_cost
             left = i+1
             right = best_j
             while left < right:
                 path[left], path[right] = path[right], path[left]
                 left += 1
                 right -= 1
-    return is_opt, path
+    return is_opt, path, total_improved_cost
 
 
 def or_opt(N, path, dist, num):
     is_update = False
+    total_improved_cost = 0
+
     for i in range(N-1):
-        max_inproved_cost = 0
+        max_improved_cost = 0
         best_j = -1
         for j in range(1, N-num):
-            if i + 1 < j or j < i - (num-1):
+            if i + 1 < j or j < i - (num - 1):
                 current = dist[path[i]][path[i+1]] + \
                     dist[path[j-1]][path[j]] + \
                     dist[path[j+(num-1)]][path[j+num]]
@@ -109,18 +114,21 @@ def or_opt(N, path, dist, num):
                     dist[path[j+(num-1)]][path[i+1]] + \
                     dist[path[j-1]][path[j+num]]
                 improved_cost = current - insert_path
-                if max_inproved_cost < improved_cost:
-                    max_inproved_cost = improved_cost
+
+                if max_improved_cost < improved_cost:
+                    max_improved_cost = improved_cost
                     best_j = j
+
         if best_j != -1:
             is_update = True
+            total_improved_cost += max_improved_cost
             if i + 1 < best_j:
                 path = path[:i+1] + path[best_j:best_j+num] + \
                     path[i+1:best_j] + path[best_j+num:]
             else:
                 path = path[:best_j] + path[best_j+num:i+1] + \
                     path[best_j:best_j+num] + path[i+1:]
-    return is_update, path
+    return is_update, path, total_improved_cost
 
 
 def graham_scan(cities, dist):
@@ -255,7 +263,6 @@ def solve(cities):
     N = len(cities)
     print(N)
     dist = create_dist_list(cities)
-
     # path = graham_scan(cities, dist)
     # while len(path) < N:
     #     cheapest_insertion(cities, path, dist)
@@ -276,7 +283,7 @@ def solve(cities):
 
     for nn_start in start_range:
         print("nn_start:", nn_start)
-        print("current best_path:",best_path_dist)
+        print("current best_path:", best_path_dist)
         current_path = nearest_neigbor(nn_start, N, dist)
         current_paths = []
         current_paths.append((calc_total_distance(
@@ -288,50 +295,58 @@ def solve(cities):
             total_distance = {}
             for current_path_tuple in current_paths:
                 # next_path = optimize(N, current_path, dist)
+                current_path_dist = current_path_tuple[0]
                 current_path = current_path_tuple[1]
-                is_update, opt2_path = opt_2(N, current_path, dist)
+
+                is_update, opt2_path, improved_cost = opt_2(
+                    N, current_path, dist)
                 if is_update:
-                    distance = calc_total_distance(N, opt2_path, dist)
+                    distance = current_path_dist - improved_cost
                     distance_count = total_distance.get(distance, 0)
                     if distance_count < 2:
                         next_current_paths.append((distance, opt2_path))
                         total_distance[distance] = distance_count + 1
 
-                is_update, or_opt1 = or_opt(N, current_path, dist, 1)
+                is_update, or_opt1, improved_cost = or_opt(
+                    N, current_path, dist, 1)
                 if is_update:
-                    distance = calc_total_distance(N, or_opt1, dist)
+                    distance = current_path_dist - improved_cost
                     distance_count = total_distance.get(distance, 0)
                     if distance_count < 2:
                         next_current_paths.append((distance, or_opt1))
                         total_distance[distance] = distance_count + 1
 
-                is_update, or_opt2 = or_opt(N, current_path, dist, 2)
+                is_update, or_opt2, improved_cost = or_opt(
+                    N, current_path, dist, 2)
                 if is_update:
-                    distance = calc_total_distance(N, or_opt2, dist)
+                    distance = current_path_dist - improved_cost
                     distance_count = total_distance.get(distance, 0)
                     if distance_count < 2:
                         next_current_paths.append((distance, or_opt2))
                         total_distance[distance] = distance_count + 1
 
-                is_update, or_opt3 = or_opt(N, current_path, dist, 3)
+                is_update, or_opt3, improved_cost = or_opt(
+                    N, current_path, dist, 3)
                 if is_update:
-                    distance = calc_total_distance(N, or_opt3, dist)
+                    distance = current_path_dist - improved_cost
                     distance_count = total_distance.get(distance, 0)
                     if distance_count < 2:
                         next_current_paths.append((distance, or_opt3))
                         total_distance[distance] = distance_count + 1
 
-                is_update, or_opt4 = or_opt(N, current_path, dist, 4)
+                is_update, or_opt4, improved_cost = or_opt(
+                    N, current_path, dist, 4)
                 if is_update:
-                    distance = calc_total_distance(N, or_opt4, dist)
+                    distance = current_path_dist - improved_cost
                     distance_count = total_distance.get(distance, 0)
                     if distance_count < 2:
                         next_current_paths.append((distance, or_opt4))
                         total_distance[distance] = distance_count + 1
 
-                is_update, or_opt5 = or_opt(N, current_path, dist, 5)
+                is_update, or_opt5, improved_cost = or_opt(
+                    N, current_path, dist, 5)
                 if is_update:
-                    distance = calc_total_distance(N, or_opt5, dist)
+                    distance = current_path_dist - improved_cost
                     distance_count = total_distance.get(distance, 0)
                     if distance_count < 2:
                         next_current_paths.append((distance, or_opt5))
