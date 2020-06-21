@@ -2,9 +2,11 @@
 
 import math
 import sys
+import os
 
 from common import print_solution, read_input
 import random
+import multiprocessing
 
 random.seed(7)
 
@@ -42,7 +44,7 @@ def nearest_neigbor(start_city, N, dist, threth=0.0):
     while unvisited_cities:
         unvisited_cities_list = sorted(
             list(unvisited_cities), key=distance_from_current_city)
-        if len(unvisited_cities_list) > 1:
+        if threth != 0 and len(unvisited_cities_list) > 1:
             if(random.random() < threth):
                 next_city = unvisited_cities_list[1]
             else:
@@ -120,65 +122,113 @@ def or_opt(N, path, dist, num):
     return is_update, path, total_improved_cost
 
 
-def solve(cities):
-    N = len(cities)
-    print(N)
-    dist = create_dist_list(cities)
-    start_range = range(N)
-    if(N == 512):
-        start_range = range(370, 380)
-    if(N == 2048):
-        start_range = range(1260, 1270)
-
+def work_nn_start(dist, task_queue, result_queue):
+    N = len(dist)
     best_path = []
     best_path_dist = -1
 
-    for nn_start in start_range:
-        print("nn_start:", nn_start)
-        print("current best_path:", best_path_dist)
-        current_path = nearest_neigbor(nn_start, N, dist)
-        current_paths = [(calc_total_distance(
-            N, current_path, dist), current_path)]
+    random.seed(7)
+    if N < 200:
+        threth_range = [i / 10. for i in range(0, 10, 1)]
+    else:
+        threth_range = [0]
 
-        for depth in range(100):
-            print("depth", depth)
-            next_current_paths = []
-            distance_count = {}
+    if N < 100:
+        beam_width = 1000
+    elif N < 200:
+        beam_width = 500
+    elif N < 1000:
+        beam_width = 100
+    else:
+        beam_width = 1
 
-            for current_path_dist, current_path in current_paths:
-                is_update, opt2_path, improved_cost = opt_2(
-                    N, current_path, dist)
-                if is_update:
-                    distance = current_path_dist - improved_cost
-                    count = distance_count.get(distance, 0)
-                    if count < 2:
-                        next_current_paths.append((distance, opt2_path))
-                        distance_count[distance] = count + 1
+    while True:
+        try:
+            nn_start = task_queue.get(timeout=1)
+        except Exception as e:
+            result_queue.put((best_path_dist, best_path))
+            return
+        print("[" + str(os.getpid()) + "] nn_start:", nn_start)
+        print("[" + str(os.getpid()) + "] current best_path:", best_path_dist)
+        for threth in threth_range:
+            current_path = nearest_neigbor(nn_start, N, dist, threth)
+            current_paths = [(calc_total_distance(
+                N, current_path, dist), current_path)]
 
-                for opt_num in range(1, 6):
-                    is_update, or_opt_path, improved_cost = or_opt(
-                        N, current_path, dist, opt_num)
+            for depth in range(100):
+                print("[" + str(os.getpid()) + "] depth:", depth)
+                next_current_paths = []
+                distance_count = {}
+
+                for current_path_dist, current_path in current_paths:
+                    is_update, opt2_path, improved_cost = opt_2(
+                        N, current_path, dist)
                     if is_update:
                         distance = current_path_dist - improved_cost
                         count = distance_count.get(distance, 0)
                         if count < 2:
-                            next_current_paths.append((distance, or_opt_path))
+                            next_current_paths.append((distance, opt2_path))
                             distance_count[distance] = count + 1
 
-            if not next_current_paths:
-                break
+                    for opt_num in range(1, 6):
+                        is_update, or_opt_path, improved_cost = or_opt(
+                            N, current_path, dist, opt_num)
+                        if is_update:
+                            distance = current_path_dist - improved_cost
+                            count = distance_count.get(distance, 0)
+                            if count < 2:
+                                next_current_paths.append((distance, or_opt_path))
+                                distance_count[distance] = count + 1
 
-            next_current_paths.sort()
-            current_best_path_dist, current_best_path = next_current_paths[0]
+                if not next_current_paths:
+                    break
 
-            if best_path_dist == -1 or best_path_dist > current_best_path_dist:
-                best_path_dist = current_best_path_dist
-                best_path = current_best_path
+                next_current_paths.sort()
+                current_best_path_dist, current_best_path = next_current_paths[0]
 
-            if len(next_current_paths) > 100:
-                next_current_paths = next_current_paths[:100]
-            current_paths = next_current_paths
+                if best_path_dist == -1 or best_path_dist > current_best_path_dist:
+                    best_path_dist = current_best_path_dist
+                    best_path = current_best_path
 
+                if len(next_current_paths) > beam_width:
+                    next_current_paths = next_current_paths[:beam_width]
+                current_paths = next_current_paths
+
+
+def solve(cities):
+    N = len(cities)
+    # if N != 64:
+    #     return []
+    print(N)
+    dist = create_dist_list(cities)
+    start_range = range(N)
+    # if(N == 512):
+    #     start_range = range(370, 380)
+    # if(N == 2048):
+    #     start_range = range(1260, 1264)
+
+    task_queue = multiprocessing.Queue()
+    result_queue = multiprocessing.Queue()
+    for nn_start in start_range:
+        task_queue.put(nn_start)
+
+    process_list = []
+    for index in range(4):
+        process_list.append(multiprocessing.Process(
+            target=work_nn_start, args=(dist, task_queue, result_queue)))
+        process_list[index].start()
+
+    for index in range(4):
+        process_list[index].join()
+
+    best_path = []
+    best_path_dist = -1
+    while not result_queue.empty():
+        path_dist, path = result_queue.get()
+        if best_path_dist > path_dist or best_path_dist == -1:
+            best_path_dist = path_dist
+            best_path = path
+    print("N:"+str(N)+"best_dist"+str(best_path_dist))
     # Veridation check
     uniq_cities = set(best_path)
     if(len(uniq_cities) != N):
