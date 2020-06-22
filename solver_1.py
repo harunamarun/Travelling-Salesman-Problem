@@ -160,7 +160,7 @@ def work_nn_start(dist, task_queue, result_queue):
                 N, current_path, dist), current_path)]
 
             for depth in range(100):
-                print("[" + str(os.getpid()) + "] depth:", depth)
+                print("[" + str(os.getpid()) + "] nn_start: ", nn_start , " depth:", depth)
                 next_current_paths = []
                 distance_count = {}
 
@@ -193,6 +193,12 @@ def work_nn_start(dist, task_queue, result_queue):
                 if best_path_dist == -1 or best_path_dist > current_best_path_dist:
                     best_path_dist = current_best_path_dist
                     best_path = current_best_path
+                    file_name = "tmp/" + str(os.getpid()) + "_" + str(best_path_dist)
+                    if best_path_dist < 40600:
+                        with open(file_name, mode='w') as f:
+                            for idx in best_path:
+                                f.write(str(idx))
+                                f.write("\n")
 
                 if len(next_current_paths) > beam_width:
                     next_current_paths = next_current_paths[:beam_width]
@@ -202,8 +208,10 @@ def work_nn_start(dist, task_queue, result_queue):
 def solve(cities):
     N = len(cities)
     print(N)
+    if N != 2048:
+        return []
     dist = create_dist_list(cities)
-    start_range = range(N)
+    start_range = range(1000, N)
     # if(N == 512):
     #     start_range = range(370, 380)
     #if(N == 2048):
@@ -215,12 +223,12 @@ def solve(cities):
         task_queue.put(nn_start)
 
     process_list = []
-    for index in range(20):
+    for index in range(24):
         process_list.append(multiprocessing.Process(
             target=work_nn_start, args=(dist, task_queue, result_queue)))
         process_list[index].start()
 
-    for index in range(20):
+    for index in range(24):
         process_list[index].join()
 
     best_path = []
