@@ -130,23 +130,27 @@ def work_nn_start(dist, task_queue, result_queue):
     random.seed(7)
     if N < 200:
         threth_range = [i / 10. for i in range(0, 10, 1)]
+    elif N < 600:
+        threth_range = [i / 10. for i in range(0, 2, 1)]
     else:
         threth_range = [0]
 
     if N < 100:
-        beam_width = 1000
+        beam_width = 5000
     elif N < 200:
-        beam_width = 500
+        beam_width = 1000
     elif N < 1000:
-        beam_width = 100
+        beam_width = 300
     else:
-        beam_width = 1
+        beam_width = 5
 
     while True:
         try:
             nn_start = task_queue.get(timeout=1)
         except Exception as e:
-            result_queue.put((best_path_dist, best_path))
+            if best_path_dist != -1:
+                result_queue.put((best_path_dist, best_path))
+                return
             return
         print("[" + str(os.getpid()) + "] nn_start:", nn_start)
         print("[" + str(os.getpid()) + "] current best_path:", best_path_dist)
@@ -197,14 +201,12 @@ def work_nn_start(dist, task_queue, result_queue):
 
 def solve(cities):
     N = len(cities)
-    # if N != 64:
-    #     return []
     print(N)
     dist = create_dist_list(cities)
     start_range = range(N)
     # if(N == 512):
     #     start_range = range(370, 380)
-    # if(N == 2048):
+    #if(N == 2048):
     #     start_range = range(1260, 1264)
 
     task_queue = multiprocessing.Queue()
@@ -213,12 +215,12 @@ def solve(cities):
         task_queue.put(nn_start)
 
     process_list = []
-    for index in range(4):
+    for index in range(20):
         process_list.append(multiprocessing.Process(
             target=work_nn_start, args=(dist, task_queue, result_queue)))
         process_list[index].start()
 
-    for index in range(4):
+    for index in range(20):
         process_list[index].join()
 
     best_path = []
