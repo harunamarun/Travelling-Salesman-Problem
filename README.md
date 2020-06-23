@@ -49,9 +49,9 @@ CHI ••• Convex Hull Insertion
 | ----                                            | ----    | ----    | ----    | ----    | ----     | ----     | ----     | ----      |
 | NN                                              | 3418.10 | 3832.29 | 5065.58 | 9276.22 | 12084.32 | 24191.66 | 47822.41 | -         |
 | NN + loop(2-opt)                                | 3291.62 | 3778.72 | 4494.42 | 8177.54 | 10646.62 | 20445.66 |  -       | -         |
-| NN + loop(2-opt + Or-opt)                       | 3291.62 | 3778.72 | 4494.42 | 8177.54 | 10575.65 | 20360.85 |  -40640? | solver_using_nn.py |
-| CHI + loop(2-opt + Or-opt)                      | 3291.62 | 3778.72 | 4494.42 | 8461.06 | 10840.90 | 21200.09 | 41638.84 | solver_using_chi.py |
-| [NN + loop(2-opt + Or-opt) + BeamSearch + random](https://harunamarun.github.io/week4-tsp/visualizer/) | 3291.62 | 3778.72 | 4494.42 | 8118.40 | | 10496.039 | 20193.15 | 40476.42 | solver_1.py |   
+| NN + loop(2-opt + Or-opt)                       | 3291.62 | 3778.72 | 4494.42 | 8177.54 | 10575.65 | 20360.85 | 40630.57 | solver_using_nn.py |
+| CHI + loop(2-opt + Or-opt)                      | 3291.62 | 3778.72 | 4494.42 | 8461.06 | 10840.90 | 21200.09 | 42381.31 | solver_using_chi.py |
+| [NN + loop(2-opt + Or-opt) + BeamSearch + random](https://harunamarun.github.io/week4-tsp/visualizer/) | 3291.62 | 3778.72 | 4494.42 | 8118.40 | 10496.039 | 20193.15 | 40476.42 | solver_1.py |   
 
 #### Points of attention
 + Repeat 2-opt + Or-opt until there is no improvement.   
