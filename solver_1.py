@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import math
 import sys
 import os
@@ -32,7 +30,7 @@ def create_dist_list(cities):
     return dist
 
 
-def nearest_neigbor(start_city, N, dist, threth=0.0):
+def nearest_neighbor(start_city, N, dist, threth=0.0):
     current_city = start_city
     unvisited_cities = set(range(0, N))
     unvisited_cities.remove(current_city)
@@ -128,6 +126,8 @@ def work_nn_start(dist, task_queue, result_queue):
     best_path_dist = -1
 
     random.seed(7)
+    # This is a parameter which is threth range
+    # I changed this parameter for each N becouse of computational complexity.
     if N < 200:
         threth_range = [i / 10. for i in range(0, 10, 1)]
     elif N < 600:
@@ -135,6 +135,8 @@ def work_nn_start(dist, task_queue, result_queue):
     else:
         threth_range = [0]
 
+    # This is a parameter which is beam search width.
+    # I changed this parameter for each N becouse of computational complexity.
     if N < 100:
         beam_width = 5000
     elif N < 200:
@@ -147,7 +149,7 @@ def work_nn_start(dist, task_queue, result_queue):
     while True:
         try:
             nn_start = task_queue.get(timeout=1)
-        except Exception as e:
+        except Exception:
             if best_path_dist != -1:
                 result_queue.put((best_path_dist, best_path))
                 return
@@ -155,12 +157,13 @@ def work_nn_start(dist, task_queue, result_queue):
         print("[" + str(os.getpid()) + "] nn_start:", nn_start)
         print("[" + str(os.getpid()) + "] current best_path:", best_path_dist)
         for threth in threth_range:
-            current_path = nearest_neigbor(nn_start, N, dist, threth)
+            current_path = nearest_neighbor(nn_start, N, dist, threth)
             current_paths = [(calc_total_distance(
                 N, current_path, dist), current_path)]
 
             for depth in range(100):
-                print("[" + str(os.getpid()) + "] nn_start: ", nn_start , " depth:", depth)
+                print("[" + str(os.getpid()) + "] nn_start: ",
+                      nn_start, " depth:", depth)
                 next_current_paths = []
                 distance_count = {}
 
@@ -181,24 +184,21 @@ def work_nn_start(dist, task_queue, result_queue):
                             distance = current_path_dist - improved_cost
                             count = distance_count.get(distance, 0)
                             if count < 2:
-                                next_current_paths.append((distance, or_opt_path))
+                                next_current_paths.append(
+                                    (distance, or_opt_path))
                                 distance_count[distance] = count + 1
 
                 if not next_current_paths:
                     break
 
                 next_current_paths.sort()
-                current_best_path_dist, current_best_path = next_current_paths[0]
+                current_best_path_dist, current_best_path \
+                    = next_current_paths[0]
 
-                if best_path_dist == -1 or best_path_dist > current_best_path_dist:
+                if best_path_dist == -1 or \
+                        best_path_dist > current_best_path_dist:
                     best_path_dist = current_best_path_dist
                     best_path = current_best_path
-                    file_name = "tmp/" + str(os.getpid()) + "_" + str(best_path_dist)
-                    if best_path_dist < 40600:
-                        with open(file_name, mode='w') as f:
-                            for idx in best_path:
-                                f.write(str(idx))
-                                f.write("\n")
 
                 if len(next_current_paths) > beam_width:
                     next_current_paths = next_current_paths[:beam_width]
@@ -208,27 +208,22 @@ def work_nn_start(dist, task_queue, result_queue):
 def solve(cities):
     N = len(cities)
     print(N)
-    if N != 2048:
-        return []
     dist = create_dist_list(cities)
-    start_range = range(1000, N)
-    # if(N == 512):
-    #     start_range = range(370, 380)
-    #if(N == 2048):
-    #     start_range = range(1260, 1264)
 
     task_queue = multiprocessing.Queue()
     result_queue = multiprocessing.Queue()
-    for nn_start in start_range:
+    for nn_start in range(0, N):
         task_queue.put(nn_start)
 
     process_list = []
-    for index in range(24):
+    # this range is how many cpu you use
+    num_cpu = multiprocessing.cpu_count()
+    for index in range(num_cpu):
         process_list.append(multiprocessing.Process(
             target=work_nn_start, args=(dist, task_queue, result_queue)))
         process_list[index].start()
 
-    for index in range(24):
+    for index in range(num_cpu):
         process_list[index].join()
 
     best_path = []
