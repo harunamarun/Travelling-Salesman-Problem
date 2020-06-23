@@ -1,3 +1,73 @@
+# Travelling Salesman Problem Challenges.
+I tried this problem when I joined Build@Mercari 2020 Week4.
+
+## How to use a visualizer
+0. Go to this [link](https://harunamarun.github.io/week4-tsp/visualizer/
+), if you want to just see the result of a fast solver.   
+
+1. Open `solution_generator.py` and change file which you want to run.(`line20`)   
+The default file is `solver_1.py` which is my best solution, but it needs a long time.   
+I used 24 CPU in Google Cloud Platform and the run time is one day:joy:   
+If you want to try more easily I recommend using `solver_greedy.py`.  
+You can choose them.  
+```
+• solver_1   
+• solver_using_nn   
+• solver_using_chi   
+• solver_greedy   
+• solver_random   
+```
+
+2. Create outputs file.
+```
+python3 solution_generator.jp
+```
+3. Run the server and go to this link. 
+```
+./nocache_server.py
+```
+[`http://localhost:8000/visualizer/`](http://localhost:8000/visualizer/)
+
+
+## Algorithm
+### Approximation algorithm
+- Nearest Neighbor   
+- Convex Hull Insertion   
+### Improvement algorithm
+- 2-opt   
+- Or-opt   
+### Other ideas
+- multi processing   
+- Beam Search   
+- Randomness in Nearest Neighbor Algorithm. Sometimes choose the second nearest city.
+
+## Evaluation
+NN ••• Nearest Neighbor   
+CHI ••• Convex Hull Insertion   
+
+|                                                 | N = 5   | N = 8   | N = 16  | N = 64  | N = 128  | N = 512  | N = 2048 | file name |
+| ----                                            | ----    | ----    | ----    | ----    | ----     | ----     | ----     | ----      |
+| NN                                              | 3418.10 | 3832.29 | 5065.58 | 9276.22 | 12084.32 | 24191.66 | 47822.41 | -         |
+| NN + loop(2-opt)                                | 3291.62 | 3778.72 | 4494.42 | 8177.54 | 10646.62 | 20445.66 |  -       | -         |
+| NN + loop(2-opt + Or-opt)                       | 3291.62 | 3778.72 | 4494.42 | 8177.54 | 10575.65 | 20360.85 |  -40640? | solver_using_nn.py |
+| CHI + loop(2-opt + Or-opt)                      | 3291.62 | 3778.72 | 4494.42 | 8461.06 | 10840.90 | 21200.09 | 41638.84 | solver_using_chi.py |
+| [NN + loop(2-opt + Or-opt) + BeamSearch + random](https://harunamarun.github.io/week4-tsp/visualizer/) | 3291.62 | 3778.72 | 4494.42 | 8118.40 | | 10496.039 | 20193.15 | 40476.42 | solver_1.py |   
+
+#### Points of attention
++ Repeat 2-opt + Or-opt until there is no improvement.   
++ Tried Or-opt's with 19 subpath at most.  
++ As for Nearest Neighbor, path depends on the start city. So, I tried starting from all the cities.   
+   
+## Reference   
+[巡回セールスマン問題の近似アルゴリズムについて](https://mie-u.repo.nii.ac.jp/?action=repository_action_common_download&item_id=5071&item_no=1&attribute_id=17&file_no=1)   
+[巡回セールスマン問題における局所探索法の提案](https://www.cst.nihon-u.ac.jp/research/gakujutu/57/pdf/L-20.pdf)   
+[Algorithms with Python](http://www.nct9.ne.jp/m_hiroi/light/pyalgo23.html)    
+   
+   
+   
+----
+----
+
 Build@Mercari 2020 Week4 - Travelling Salesman PRoblem Challenges.
 
 This is forked from [https://github.com/hayatoito/google-step-tsp-2016](https://github.com/hayatoito/google-step-tsp-2016).
