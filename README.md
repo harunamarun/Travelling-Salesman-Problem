@@ -5,17 +5,15 @@ I tried this problem when I joined Build@Mercari 2020 Week4.
 0. Go to this [link](https://harunamarun.github.io/week4-tsp/visualizer/
 ), if you want to just see the result of a fast solver.   
 
-1. Open `solution_generator.py` and change file which you want to run.(`line20`)   
+1. Open `solution_generator.py` and change file which you want to run.(`line20`)  
+I implemented multiple solutions.
 The default file is `solver_1.py` which is my best solution, but it needs a long time.   
-I used 24 CPU in Google Cloud Platform and the run time is one day:joy:   
-If you want to try more easily I recommend using `solver_greedy.py`.  
-You can choose them.  
+I used 24 CPU in Google Cloud Platform and the run time is one day:joy:    
+Because of that if you want to try `solver_1`, I recommend adjust some parameters such as a beam search width.
 ```
 • solver_1   
 • solver_using_nn   
 • solver_using_chi   
-• solver_greedy   
-• solver_random   
 ```
 
 2. Create outputs file.
@@ -36,7 +34,8 @@ python3 solution_generator.jp
 ### Improvement algorithm
 - 2-opt   
 - Or-opt   
-### Other ideas
+
+## Originality
 - multi processing   
 - Beam Search   
 - Randomness in Nearest Neighbor Algorithm. Sometimes choose the second nearest city.
