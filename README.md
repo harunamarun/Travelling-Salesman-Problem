@@ -1,6 +1,10 @@
 # Travelling Salesman Problem Challenges.
-I tried this problem when I joined Build@Mercari 2020 Week4.
+I tried this problem when I joined [Build@Mercari 2020](https://mercan.mercari.com/articles/19631/) Week4.    
+This is forked from [https://github.com/mercari-build/week4-tsp](https://github.com/mercari-build/week4-tsp).   
+My score was the shortest distance recorded in this program:sparkles:   
 
+## Demo
+![tsp](https://user-images.githubusercontent.com/56245555/87240480-e5356480-c454-11ea-9c64-ab2175e60899.gif)
 ## How to use a visualizer
 0. Go to this [link](https://harunamarun.github.io/week4-tsp/visualizer/
 ), if you want to just see the result of a fast solver.   
