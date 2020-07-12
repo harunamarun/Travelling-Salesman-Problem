@@ -1,4 +1,8 @@
 # Travelling Salesman Problem Challenges.
+I designed an algorithm to solve a fundamental problem faced by every travelling salesperson,   
+called Travelling Salesman Problem ([TSP](http://en.wikipedia.org/wiki/Travelling_salesman_problem)). 
+
+
 I tried this problem when I joined [Build@Mercari 2020](https://mercan.mercari.com/articles/19631/) Week4.    
 This is forked from [https://github.com/mercari-build/week4-tsp](https://github.com/mercari-build/week4-tsp).   
 My score was the shortest distance recorded in this program:sparkles:   
